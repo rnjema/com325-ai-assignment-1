@@ -133,9 +133,25 @@ def breadthFirstSearch(problem):
     return generalSearch(problem, structure=queue)
 
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    """
+    Searches the node of least total cost first. 
+    Employs a Priority Queue that takes a sorting function. 
+    The sorting function ensures nodes with least cost functions are visited first
+    """
+
+    def sortingFn(path):
+        """ Returns the cost of a path, that will ultimately be used to sort the Priority Queue.
+            Computes cost function for a set of actions in a path.    
+        """
+        actions = [action for _,action,_ in path][1:] # disregards first action STOP for the initial node
+
+        return problem.getCostOfActions(actions)
+
+    priority_q = util.PriorityQueueWithFunction(sortingFn) # Initializes a PriorityQueue with a sorting key function
+
+    return generalSearch(problem=problem, structure=priority_q)
+                                                      
+    
 
 def nullHeuristic(state, problem=None):
     """
