@@ -72,22 +72,58 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+def generalSearch(problem, structure):
+    """ 
+    Defines a general graph search algorithm. 
+    Taking into the account the fact that, given the same search problem,search algorithms utimately differ 
+    in the type of data structure associated with them  and how the cost function is calculated for each set of actions.
+    Uninformed graph search algorithms are assumed to have a constant cost for each set of actions.
+
+    Params:
+    problem:    Search problem
+
+    structure:  Data structure conforming to the (LIFO, FIFO, Priority) queueing policies. 
+                Must support pop() and push() methods. Will store the paths for each node traversed.
+                Where each path is a list of triples, each triple looking like this (state, action, cost)   
+    """
+    from game import Directions
+
+    structure.push([(problem.getStartState(), Directions.STOP, 0)]) # Adds path of start node to structure
+
+    visited = set() # Set to hold states already visited/traversed
+
+    while not structure.isEmpty():
+        
+        # Gets the path of the most recent structure entry
+        path_latest = structure.pop()
+
+        # Gets current state
+        curr_state, _, _ = path_latest[-1]
+
+        if problem.isGoalState(curr_state): # Check if goal has been reached
+            # Returns a sequence of actions leading up to the goal state, disregarding initial STOP action
+            return [action for _, action,_ in path_latest][1:]
+
+        visited.add(curr_state) # Adds current state to visited, if not already visited
+
+        for newState, nxtAction, stepCost in problem.getSuccessors(curr_state): # For each of current state's successors
+            if newState not in visited:
+                path_succesor = path_latest.copy() # Copies parent state's path
+
+                path_succesor.append((newState, nxtAction, stepCost)) # Succesor's path = Parent state's path + successor node triple 
+
+                structure.push(path_succesor)
+
+    return False # If search fails
+
+
+
 def depthFirstSearch(problem):
-    """
-    Search the deepest nodes in the search tree first.
+    """ Searches the deepest nodes in the search tree first. Employs a stack-based implementation. """
 
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
+    stack = util.Stack() # Initializes an empty stack
 
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-
-    print("Start:", problem.getStartState())
-    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print("Start's successors:", problem.getSuccessors(problem.getStartState()))
-    """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return generalSearch(problem, structure=stack) 
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
