@@ -158,13 +158,30 @@ def nullHeuristic(state, problem=None):
     A heuristic function estimates the cost from the current state to the nearest
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
-    return 0
+    #return 0
+    import random
+    return random.choice([0,1,2,4]) # Randomly selects a heuristic value to return. 
+                                    # Just to notice how many nodes it expands before convergence.
 
 def aStarSearch(problem, heuristic=nullHeuristic):
-    """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    """
+    Searches the node that has the lowest combined cost and heuristic first.
+    """
 
+    def sortingFn(path):
+        """ Returns the cost of a path, that will ultimately be used to sort the Priority Queue.
+            Computes cost function for a set of actions in a path combined with the heuristic estimate.    
+        """
+        actions = [action for _,action,_ in path][1:] # disregards first action STOP for the initial node
+
+        cur_state,_,_ = path[-1] # State to use for determining heuristic
+
+        return problem.getCostOfActions(actions) + heuristic(cur_state, problem) # Overall cost = Cost so far + heuristic
+
+    priority_q = util.PriorityQueueWithFunction(sortingFn) # Initializes a PriorityQueue with a sorting key function
+
+    return generalSearch(problem=problem, structure=priority_q)
+    
 
 # Abbreviations
 bfs = breadthFirstSearch
