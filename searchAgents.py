@@ -270,7 +270,10 @@ class CornersProblem(search.SearchProblem):
     """
     This search problem finds paths through all four corners of a layout.
 
-    You must select a suitable state space and successor function
+    You must select a suitable state space and successor function.
+
+    Agent's state would be represented as a tuple of starting 2D position coordinate and list/tuple of visited corners.
+    Where visited corners are merely 2D edge positions with boolean flags indicating visitation status.
     """
 
     def __init__(self, startingGameState):
@@ -288,6 +291,14 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.visited,self.visitedlist = {}, []
+        self.cornersVisited = []
+        for corner in self.corners:
+            if self.startingPosition == corner:
+                self.cornersVisited.append((corner,True))       #Initializing visitedcorners and visited nodes
+            else:
+                self.cornersVisited.append((corner,False))
+        self.cornersVisited = tuple(self.cornersVisited)
 
     def getStartState(self):
         """
@@ -295,14 +306,23 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return(self.startingPosition,self.cornersVisited)  #Returns starting position and corners visited from initialization.
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        allCornersVisited = True
+
+        for corner in state[1]:
+            _,cornerVisited = corner # Returns boolean visitation flag for each corner
+            
+            if not cornerVisited:      #Checks if at least one corner is unvisited 
+                                    #and returns false, if satisfied
+                return False
+
+        return allCornersVisited
 
     def getSuccessors(self, state):
         """
@@ -325,6 +345,27 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            (xPos, yPos), cornerState = state
+            
+            newCornerState = []
+
+            dx,dy = Actions.directionToVector(action) # Returns 2D position state delta/change
+            nextX, nextY = int(xPos + dx), int(yPos + dy) # Computes new state postion from deltas
+            
+            nextPos = (nextX,nextY)
+
+            hitsWall = self.walls[nextX][nextY]
+
+            if not hitsWall:    # Checks if move is valid (does not take agent out of bounds/through walls)
+                for corner in cornerState:                        
+                    pos, _ = corner
+                    if nextPos == pos:
+                        newCornerState.append((pos,True))
+                    else:
+                        newCornerState.append((pos,corner[1]))
+                
+                newCornerState = tuple(newCornerState)
+                successors.append(((nextPos,newCornerState),action,1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -335,7 +376,7 @@ class CornersProblem(search.SearchProblem):
         include an illegal move, return 999999.  This is implemented for you.
         """
         if actions == None: return 999999
-        x,y= self.startingPosition
+        x,y = self.startingPosition
         for action in actions:
             dx, dy = Actions.directionToVector(action)
             x, y = int(x + dx), int(y + dy)
